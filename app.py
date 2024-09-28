@@ -143,28 +143,42 @@ if st.button('Show Recommendations'):
 
     recommendations = hybrid_recommendation_systems(items, user_id, selected_item)
 
-    if not recommendations.empty:
-        for idx, (index, row_data) in enumerate(recommendations.iterrows()):
-            # Display items in two columns
-            col1, col2 = st.columns([1, 2])  # Col1 for image, Col2 for text info
-            
-            with col1:
-                # Fetch and resize the image to a fixed size
+   
+
+rowsR = [recommendations.iloc[i:i + num_columns] for i in range(0, len(recommendations), num_columns)]
+
+for row in rowsR:
+    cols = st.columns(num_columns)
+
+    for idx,col in enumerate(cols):
+        if idx < len(row):
+
+            row_data = row.iloc[idx]
+            img_url = row_data['ImageURL']
+            name = row_data['Name']
+            brand = row_data['Brand']
+            rating = row_data['Rating']
+
+            with col:
                 try:
-                    response = requests.get(row_data['ImageURL'])
+                     # Download and resize the image to 150x200 pixels
+                    response = requests.get(img_url)
                     img = Image.open(BytesIO(response.content))
-                    img = img.resize((150, 150))  # Resize image to 150x150 pixels
-                    st.image(img)
-                except:
+                    img = img.resize((150, 150))  # Resize the image to a fixed size
+                except Exception as e:
                     st.write("Image not available")
-            
-            with col2:
-                # Display product name, brand, and rating
-                st.write(f"**Name:** {row_data['Name']}")
-                st.write(f"**Brand:** {row_data['Brand']}")
-                st.write(f"**Rating:** {row_data['Rating']:.1f}")
-
-
+                
+                st.markdown(f"""
+                    <div class="card">
+                        <img src="{img_url}"  alt="Product Image">
+                        <h4>{name}</h4>
+                        <p><strong>Brand:</strong> {brand}</p>
+                        <p><strong>Rating:</strong> {rating:.1f} ⭐</p>
+                    </div>
+                """, unsafe_allow_html=True)
+        else:
+            # Empty column if there are no more items in the row
+            col.empty()
 #calling collaborative filtering function
 recommendations = collaborative_filtering_recommendations(items, user_id)
 
@@ -315,3 +329,23 @@ for row in rows:
 
 
 
+ # if not recommendations.empty:
+    #     for idx, (index, row_data) in enumerate(recommendations.iterrows()):
+    #         # Display items in two columns
+    #         col1, col2 = st.columns([1, 2])  # Col1 for image, Col2 for text info
+            
+    #         with col1:
+    #             # Fetch and resize the image to a fixed size
+    #             try:
+    #                 response = requests.get(row_data['ImageURL'])
+    #                 img = Image.open(BytesIO(response.content))
+    #                 img = img.resize((150, 150))  # Resize image to 150x150 pixels
+    #                 st.image(img)
+    #             except:
+    #                 st.write("Image not available")
+            
+    #         with col2:
+    #             # Display product name, brand, and rating
+    #             st.write(f"**Name:** {row_data['Name']}")
+    #             st.write(f"**Brand:** {row_data['Brand']}")
+    #             st.write(f"**Rating:** {row_data['Rating']:.1f}")
