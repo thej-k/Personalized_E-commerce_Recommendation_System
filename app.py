@@ -19,7 +19,7 @@ def verify_login(user_name, password):
     connection = pymysql.connect(
         host='localhost',
         user='root',
-        password='',
+        password='200281000790',
         database='rec_system'
     )
 
