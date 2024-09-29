@@ -82,7 +82,7 @@ num_columns = 5
 selected_item = st.selectbox('Select item from dropdown', item_names)
 
 # Function for content-based recommendations
-def content_based_recommendations(items, item_name, top_n=5):
+def content_based_recommendations(items, item_name, top_n=10):
     if item_name not in items['Name'].values:
         st.write(f"Item '{item_name}' not found in the data.")
         return pd.DataFrame()
@@ -105,6 +105,8 @@ def content_based_recommendations(items, item_name, top_n=5):
         
     return recommended_items
 
+def truncate_name(name, max_length=90):
+    return (name[:max_length] + '...') if len(name) > max_length else name
 
 # Function for collaborative filtering recommendations
 def collaborative_filtering_recommendations(train_data, target_user_id, top_n = 10):
@@ -133,7 +135,7 @@ def collaborative_filtering_recommendations(train_data, target_user_id, top_n = 
 
 if st.button('Show Recommendations'):
     #Function for hybrid recommendations
-    def hybrid_recommendation_systems(train_data, target_user_id, item_name, top_n=5):
+    def hybrid_recommendation_systems(train_data, target_user_id, item_name, top_n=10):
         content_based_rec = content_based_recommendations(train_data, item_name, top_n)
         collaborative_filtering_rec = collaborative_filtering_recommendations(train_data, target_user_id, top_n)
         hybrid_recommendations = pd.concat([content_based_rec, collaborative_filtering_rec]).drop_duplicates()
@@ -145,40 +147,42 @@ if st.button('Show Recommendations'):
 
    
 
-rowsR = [recommendations.iloc[i:i + num_columns] for i in range(0, len(recommendations), num_columns)]
+    rowsR = [recommendations.iloc[i:i + num_columns] for i in range(0, len(recommendations), num_columns)]
 
-for row in rowsR:
-    cols = st.columns(num_columns)
+    for row in rowsR:
+        cols = st.columns(num_columns)
 
-    for idx,col in enumerate(cols):
-        if idx < len(row):
+        for idx,col in enumerate(cols):
+            if idx < len(row):
 
-            row_data = row.iloc[idx]
-            img_url = row_data['ImageURL']
-            name = row_data['Name']
-            brand = row_data['Brand']
-            rating = row_data['Rating']
+                row_data = row.iloc[idx]
+                img_url = row_data['ImageURL']
+                name = row_data['Name']
+                truncated_name = truncate_name(name) 
+                brand = row_data['Brand']
+                rating = row_data['Rating']
 
-            with col:
-                try:
-                     # Download and resize the image to 150x200 pixels
-                    response = requests.get(img_url)
-                    img = Image.open(BytesIO(response.content))
-                    img = img.resize((150, 150))  # Resize the image to a fixed size
-                except Exception as e:
-                    st.write("Image not available")
-                
-                st.markdown(f"""
-                    <div class="card">
-                        <img src="{img_url}"  alt="Product Image">
-                        <h4>{name}</h4>
-                        <p><strong>Brand:</strong> {brand}</p>
-                        <p><strong>Rating:</strong> {rating:.1f} ⭐</p>
-                    </div>
-                """, unsafe_allow_html=True)
-        else:
-            # Empty column if there are no more items in the row
-            col.empty()
+                with col:
+                    try:
+                        # Download and resize the image to 150x200 pixels
+                        response = requests.get(img_url)
+                        img = Image.open(BytesIO(response.content))
+                        img = img.resize((150, 150))  # Resize the image to a fixed size
+                    except Exception as e:
+                        st.write("Image not available")
+                    
+                    st.markdown(f"""
+                        <div class="card">
+                            <img src="{img_url}"  alt="Product Image">
+                            <h4>{truncated_name}</h4>
+                            <p><strong>Brand:</strong> {brand}</p>
+                            <p><strong>Rating:</strong> {rating:.1f} ⭐</p>
+                            <button>Add to cart</button>
+                        </div>
+                    """, unsafe_allow_html=True)
+            else:
+                # Empty column if there are no more items in the row
+                col.empty()
 #calling collaborative filtering function
 recommendations = collaborative_filtering_recommendations(items, user_id)
 
@@ -195,6 +199,7 @@ for row in rowsM:
             row_data = row.iloc[idx]
             img_url = row_data['ImageURL']
             name = row_data['Name']
+            truncated_name = truncate_name(name) 
             brand = row_data['Brand']
             rating = row_data['Rating']
 
@@ -210,9 +215,10 @@ for row in rowsM:
                 st.markdown(f"""
                     <div class="card">
                         <img src="{img_url}"  alt="Product Image">
-                        <h4>{name}</h4>
+                        <h4>{truncated_name}</h4>
                         <p><strong>Brand:</strong> {brand}</p>
                         <p><strong>Rating:</strong> {rating:.1f} ⭐</p>
+                        <button>Add to cart</button>
                     </div>
                 """, unsafe_allow_html=True)
         else:
@@ -262,18 +268,23 @@ st.markdown("""
         .card {
             margin: 2px;  /* Adjust spacing between cards */
             width: 300px;  /* Set a maximum width for each card */
-            height:550px;
+            height:450px;
             border: 1px solid #ddd;
             border-radius: 10px;
             box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
             padding: 20px;
-            margin-bottom:15px;
+            padding-bottom:2px;
+            margin-bottom:25px;
+            display: flex; /* Use flexbox */
+            flex-direction: column; /* Align children vertically */
+            justify-content: space-between;
         }
         .card img{
-            width: 100%;
-            height: 300px;
+            width: 70%;
+            height: 200px;
             border-bottom: 1px solid #ddd;
+            margin-left:15%;
             }
         .card h4 {
             margin: 10px 0;
@@ -282,6 +293,24 @@ st.markdown("""
         .card p {
             margin: 5px 0;
             font-size: 14px;
+        }
+        .card button {
+            background-color: #ff5733; /* Vibrant orange color */
+            color: white;  /* White text */
+            border: none;  /* Remove default borders */
+            padding: 10px 20px;  /* Add padding to make it bigger */
+            border-radius: 25px;  /* Rounded corners */
+            font-size: 16px;  /* Adjust the text size */
+            cursor: pointer;  /* Change the cursor to a pointer */
+            margin-bottom: 10px;
+            transition: background-color 0.3s ease, transform 0.3s ease;  /* Smooth hover effect */
+            
+        }
+        /* Hover effect for the button */
+        .card button:hover {
+            background-color: #c70039;  /* Change to darker red on hover */
+            transform: translateY(-3px);  /* Slightly lift the button on hover */
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);  /* Add shadow on hover */
         }
     </style>
 """, unsafe_allow_html=True)
@@ -301,6 +330,7 @@ for row in rows:
             row_data = row.iloc[idx]
             img_url = row_data['ImageURL']
             name = row_data['Name']
+            truncated_name = truncate_name(name) 
             brand = row_data['Brand']
             rating = row_data['Rating']
             
@@ -318,9 +348,10 @@ for row in rows:
                 st.markdown(f"""
                     <div class="card">
                         <img src="{img_url}"  alt="Product Image">
-                        <h4>{name}</h4>
+                        <h4>{truncated_name}</h4>
                         <p><strong>Brand:</strong> {brand}</p>
                         <p><strong>Rating:</strong> {rating:.1f} ⭐</p>
+                        <button>Add to cart</button>
                     </div>
                 """, unsafe_allow_html=True)
         else:
