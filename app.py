@@ -19,7 +19,7 @@ def verify_login(user_name, password):
     connection = pymysql.connect(
         host='localhost',
         user='root',
-        password='200281000790',
+        password='200300600860200281000790',
         database='rec_system'
     )
 
@@ -78,7 +78,7 @@ items = pickle.load(open('item_list.pkl', 'rb'))
 item_names = items['Name'].unique()
 
 st.header("E-Commerce Recommendation System")
-
+num_columns = 5
 selected_item = st.selectbox('Select item from dropdown', item_names)
 
 # Function for content-based recommendations
@@ -143,49 +143,103 @@ if st.button('Show Recommendations'):
 
     recommendations = hybrid_recommendation_systems(items, user_id, selected_item)
 
-    if not recommendations.empty:
-        for idx, (index, row_data) in enumerate(recommendations.iterrows()):
-            # Display items in two columns
-            col1, col2 = st.columns([1, 2])  # Col1 for image, Col2 for text info
-            
-            with col1:
-                # Fetch and resize the image to a fixed size
+   
+
+rowsR = [recommendations.iloc[i:i + num_columns] for i in range(0, len(recommendations), num_columns)]
+
+for row in rowsR:
+    cols = st.columns(num_columns)
+
+    for idx,col in enumerate(cols):
+        if idx < len(row):
+
+            row_data = row.iloc[idx]
+            img_url = row_data['ImageURL']
+            name = row_data['Name']
+            brand = row_data['Brand']
+            rating = row_data['Rating']
+
+            with col:
                 try:
-                    response = requests.get(row_data['ImageURL'])
+                     # Download and resize the image to 150x200 pixels
+                    response = requests.get(img_url)
                     img = Image.open(BytesIO(response.content))
-                    img = img.resize((150, 150))  # Resize image to 150x150 pixels
-                    st.image(img)
-                except:
+                    img = img.resize((150, 150))  # Resize the image to a fixed size
+                except Exception as e:
                     st.write("Image not available")
-            
-            with col2:
-                # Display product name, brand, and rating
-                st.write(f"**Name:** {row_data['Name']}")
-                st.write(f"**Brand:** {row_data['Brand']}")
-                st.write(f"**Rating:** {row_data['Rating']:.1f}")
-
-
+                
+                st.markdown(f"""
+                    <div class="card">
+                        <img src="{img_url}"  alt="Product Image">
+                        <h4>{name}</h4>
+                        <p><strong>Brand:</strong> {brand}</p>
+                        <p><strong>Rating:</strong> {rating:.1f} ⭐</p>
+                    </div>
+                """, unsafe_allow_html=True)
+        else:
+            # Empty column if there are no more items in the row
+            col.empty()
 #calling collaborative filtering function
 recommendations = collaborative_filtering_recommendations(items, user_id)
 
-st.subheader("Items that matches your search")
-for index, row in recommendations.iterrows():
-    col1, col2 = st.columns([1, 2])  # Col1 for image, Col2 for text info
-            
-    with col1:
-        try:
-            response = requests.get(row['ImageURL'])
-            img = Image.open(BytesIO(response.content))
-            img = img.resize((150, 150))  # Resize image to 150x150 pixels
-            st.image(img)
-        except:
-            st.write("Image not available")
-            
-    with col2:
-        st.write(f"**Name:** {row['Name']}")
-        st.write(f"**Brand:** {row['Brand']}")
-        st.write(f"**Rating:** {row['Rating']:.1f}")
+st.subheader("Items that matches your search :")
 
+rowsM = [recommendations.iloc[i:i + num_columns] for i in range(0, len(recommendations), num_columns)]
+
+for row in rowsM:
+    cols = st.columns(num_columns)
+
+    for idx,col in enumerate(cols):
+        if idx < len(row):
+
+            row_data = row.iloc[idx]
+            img_url = row_data['ImageURL']
+            name = row_data['Name']
+            brand = row_data['Brand']
+            rating = row_data['Rating']
+
+            with col:
+                try:
+                     # Download and resize the image to 150x200 pixels
+                    response = requests.get(img_url)
+                    img = Image.open(BytesIO(response.content))
+                    img = img.resize((150, 150))  # Resize the image to a fixed size
+                except Exception as e:
+                    st.write("Image not available")
+                
+                st.markdown(f"""
+                    <div class="card">
+                        <img src="{img_url}"  alt="Product Image">
+                        <h4>{name}</h4>
+                        <p><strong>Brand:</strong> {brand}</p>
+                        <p><strong>Rating:</strong> {rating:.1f} ⭐</p>
+                    </div>
+                """, unsafe_allow_html=True)
+        else:
+            # Empty column if there are no more items in the row
+            col.empty()
+
+# for index, row in recommendations.iterrows():
+#     # Fetch the image URL
+#     img_url = row['ImageURL']
+#     name = row['Name']
+#     brand = row['Brand']
+#     rating = row['Rating']
+    
+#     # HTML structure for each card
+#     card_html = f"""
+#         <div class='cs'>
+#         <div class="card">
+#             <img src="{img_url}" alt="Product Image">
+#             <h4>{name}</h4>
+#             <p><strong>Brand:</strong> {brand}</p>
+#             <p><strong>Rating:</strong> {rating:.1f} ⭐</p>
+#         </div>
+#         </div>
+#     """
+    
+#     # Render the card using st.markdown
+#     st.markdown(card_html, unsafe_allow_html=True)
 
 # Function for rating-based recommendation
 def rating_based_recommendations(items, top_n=10):
@@ -200,28 +254,98 @@ def rating_based_recommendations(items, top_n=10):
 # Get recommendations
 recommendations = rating_based_recommendations(items)
 
-#Display recommendations
 st.subheader("Top Rated Items:")
 
-for idx, (index, row_data) in enumerate(recommendations.iterrows()):
-    if idx >= 10:  # Ensure only 10 items are displayed
-        break
+# Custom styles for the card layout
+st.markdown("""
+    <style>
+        .card {
+            margin: 2px;  /* Adjust spacing between cards */
+            width: 300px;  /* Set a maximum width for each card */
+            height:550px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            padding: 20px;
+            margin-bottom:15px;
+        }
+        .card img{
+            width: 100%;
+            height: 300px;
+            border-bottom: 1px solid #ddd;
+            }
+        .card h4 {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        .card p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+
+
+# Break recommendations into rows of `num_columns` cards
+rows = [recommendations.iloc[i:i + num_columns] for i in range(0, len(recommendations), num_columns)]
+
+for row in rows:
+    # Create the columns for the current row
+    cols = st.columns(num_columns)
     
-    # Display items in two columns
-    col1, col2 = st.columns([1, 2])  # Col1 for image, Col2 for text info
-    
-    with col1:
-        # Fetch and resize the image to a fixed size
-        try:
-            response = requests.get(row_data['ImageURL'])
-            img = Image.open(BytesIO(response.content))
-            img = img.resize((150, 150))  # Resize image to 150x150 pixels
-            st.image(img)
-        except:
-            st.write("Image not available")
-    
-    with col2:
-        # Display product name, brand, and rating
-        st.write(f"**Name:** {row_data['Name']}")
-        st.write(f"**Brand:** {row_data['Brand']}")
-        st.write(f"**Rating:** {row_data['Rating']:.1f}")
+    for idx, col in enumerate(cols):
+        if idx < len(row):
+            # Access the current card data
+            row_data = row.iloc[idx]
+            img_url = row_data['ImageURL']
+            name = row_data['Name']
+            brand = row_data['Brand']
+            rating = row_data['Rating']
+            
+            # Use the column to display the card
+            with col:
+                try:
+                    # Download and resize the image to 150x200 pixels
+                    response = requests.get(img_url)
+                    img = Image.open(BytesIO(response.content))
+                    img = img.resize((150, 150))  # Resize the image to a fixed size
+                except Exception as e:
+                    st.write("Image not available")
+
+                # Apply the custom card style using HTML inside the column
+                st.markdown(f"""
+                    <div class="card">
+                        <img src="{img_url}"  alt="Product Image">
+                        <h4>{name}</h4>
+                        <p><strong>Brand:</strong> {brand}</p>
+                        <p><strong>Rating:</strong> {rating:.1f} ⭐</p>
+                    </div>
+                """, unsafe_allow_html=True)
+        else:
+            # Empty column if there are no more items in the row
+            col.empty()
+
+
+
+ # if not recommendations.empty:
+    #     for idx, (index, row_data) in enumerate(recommendations.iterrows()):
+    #         # Display items in two columns
+    #         col1, col2 = st.columns([1, 2])  # Col1 for image, Col2 for text info
+            
+    #         with col1:
+    #             # Fetch and resize the image to a fixed size
+    #             try:
+    #                 response = requests.get(row_data['ImageURL'])
+    #                 img = Image.open(BytesIO(response.content))
+    #                 img = img.resize((150, 150))  # Resize image to 150x150 pixels
+    #                 st.image(img)
+    #             except:
+    #                 st.write("Image not available")
+            
+    #         with col2:
+    #             # Display product name, brand, and rating
+    #             st.write(f"**Name:** {row_data['Name']}")
+    #             st.write(f"**Brand:** {row_data['Brand']}")
+    #             st.write(f"**Rating:** {row_data['Rating']:.1f}")
