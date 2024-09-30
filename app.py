@@ -7,12 +7,16 @@ from io import BytesIO
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import pymysql
+import streamlit.components.v1 as components
+
 
 st.set_page_config(page_title="E-Commerce Recommendation System", layout="wide")
 
 # Initialize session state for login status (default: False)
 if 'login_status' not in st.session_state:
     st.session_state['login_status'] = False
+
+video_url = "https://raw.githubusercontent.com/thej-k/Personalized_E-commerce_Recommendation_System/main/e_commerce.mp4"
 
 # Connect to MySQL database
 def verify_login(user_name, password):
@@ -60,6 +64,30 @@ if not st.session_state['login_status']:
 
 # Once the user is logged in, show the home page
 if st.session_state['login_status']:
+        # Video banner (autoplay, muted, loop)
+    video_html = f"""
+        <style>
+        .video-container {{
+            width: 100%;
+            height: auto;
+        }}
+        .video-container video {{
+            width: 100%;
+            height: auto;
+              margin-top: -200px;
+
+        }}
+        </style>
+        <div class="video-container">
+            <video autoplay muted loop>
+                <source src="{video_url}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+    """
+
+    # Render the video banner at the top
+    components.html(video_html, height=400)  # Adjust the height as needed
     st.write("Welcome to the E-Commerce Recommendation System!")
 
 
