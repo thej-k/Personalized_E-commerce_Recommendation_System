@@ -255,28 +255,6 @@ for row in rowsM:
             # Empty column if there are no more items in the row
             col.empty()
 
-# for index, row in recommendations.iterrows():
-#     # Fetch the image URL
-#     img_url = row['ImageURL']
-#     name = row['Name']
-#     brand = row['Brand']
-#     rating = row['Rating']
-    
-#     # HTML structure for each card
-#     card_html = f"""
-#         <div class='cs'>
-#         <div class="card">
-#             <img src="{img_url}" alt="Product Image">
-#             <h4>{name}</h4>
-#             <p><strong>Brand:</strong> {brand}</p>
-#             <p><strong>Rating:</strong> {rating:.1f} ⭐</p>
-#         </div>
-#         </div>
-#     """
-    
-#     # Render the card using st.markdown
-#     st.markdown(card_html, unsafe_allow_html=True)
-
 # Function for rating-based recommendation
 def rating_based_recommendations(items, top_n=10):
     average_ratings = items.groupby(['Name', 'ReviewCount', 'Brand', 'ImageURL'])['Rating'].mean().reset_index()
@@ -401,23 +379,3 @@ for row in rows:
 
 st.markdown('</div>', unsafe_allow_html=True)
 
- # if not recommendations.empty:
-    #     for idx, (index, row_data) in enumerate(recommendations.iterrows()):
-    #         # Display items in two columns
-    #         col1, col2 = st.columns([1, 2])  # Col1 for image, Col2 for text info
-            
-    #         with col1:
-    #             # Fetch and resize the image to a fixed size
-    #             try:
-    #                 response = requests.get(row_data['ImageURL'])
-    #                 img = Image.open(BytesIO(response.content))
-    #                 img = img.resize((150, 150))  # Resize image to 150x150 pixels
-    #                 st.image(img)
-    #             except:
-    #                 st.write("Image not available")
-            
-    #         with col2:
-    #             # Display product name, brand, and rating
-    #             st.write(f"**Name:** {row_data['Name']}")
-    #             st.write(f"**Brand:** {row_data['Brand']}")
-    #             st.write(f"**Rating:** {row_data['Rating']:.1f}")
