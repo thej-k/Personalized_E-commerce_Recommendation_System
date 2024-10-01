@@ -199,7 +199,7 @@ if st.button('Show Recommendations'):
                         img = Image.open(BytesIO(response.content))
                         img = img.resize((150, 150))  # Resize the image to a fixed size
                     except Exception as e:
-                        st.write("Image not available")
+                        testnameto = "testing"
                     
                     st.markdown(f"""
                         <div class="card">
@@ -240,7 +240,7 @@ for row in rowsM:
                     img = Image.open(BytesIO(response.content))
                     img = img.resize((150, 150))  # Resize the image to a fixed size
                 except Exception as e:
-                    st.write("Image not available")
+                    testnameto = "testing"
                 
                 st.markdown(f"""
                     <div class="card">
@@ -361,7 +361,7 @@ for row in rows:
                     img = Image.open(BytesIO(response.content))
                     img = img.resize((150, 150))  # Resize the image to a fixed size
                 except Exception as e:
-                    st.write("Image not available")
+                    testnameto = "testing"
 
                 # Apply the custom card style using HTML inside the column
                 st.markdown(f"""
