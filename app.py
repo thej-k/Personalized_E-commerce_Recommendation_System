@@ -23,7 +23,7 @@ def verify_login(user_name, password):
     connection = pymysql.connect(
         host='localhost',
         user='root',
-        password='',
+        password='200300600860',
         database='rec_system'
     )
 
@@ -45,11 +45,13 @@ if not st.session_state['login_status']:
     login_container = st.empty()
     
     with login_container.form(key='login_form'):
+        st.markdown('<div class="login-form-container">', unsafe_allow_html=True)
         st.header("Login to Access the System")
         user_name = st.text_input("Enter User Name:")
         password = st.text_input("Enter Password:", type='password')
 
         submit_button = st.form_submit_button("Login")
+        st.markdown('</div>', unsafe_allow_html=True) 
 
         if submit_button:
             user_id = verify_login(user_name, password)
@@ -90,7 +92,7 @@ if st.session_state['login_status']:
     components.html(video_html, height=400)  # Adjust the height as needed
     st.write("Welcome to the E-Commerce Recommendation System!")
 
-
+st.markdown('<div class="page">', unsafe_allow_html=True)   
 # Check login status using session state
 if 'login_status' not in st.session_state or not st.session_state.login_status:
     st.warning("You need to login first!")
@@ -340,6 +342,17 @@ st.markdown("""
             transform: translateY(-3px);  /* Slightly lift the button on hover */
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);  /* Add shadow on hover */
         }
+        .login-form-container {
+            max-width: 300px;  /* Adjust the max width of the form */
+            margin: 0 auto;  /* Center the form horizontally */
+            padding: 40px 20px;  /* Add padding around the form */
+            background-color: #f9f9f9;  /* Optional: Add a background color */
+            border-radius: 10px;  /* Optional: Round the corners */
+            box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.1);  /* Optional: Add a subtle shadow */
+        }
+        .page{
+            width:100%;
+            }
     </style>
 """, unsafe_allow_html=True)
 
@@ -386,7 +399,7 @@ for row in rows:
             # Empty column if there are no more items in the row
             col.empty()
 
-
+st.markdown('</div>', unsafe_allow_html=True)
 
  # if not recommendations.empty:
     #     for idx, (index, row_data) in enumerate(recommendations.iterrows()):
