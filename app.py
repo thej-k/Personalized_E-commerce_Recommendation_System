@@ -19,7 +19,7 @@ def verify_login(user_name, password):
     connection = pymysql.connect(
         host='localhost',
         user='root',
-        password='200300600860200281000790',
+        password='200281000790',
         database='rec_system'
     )
 
@@ -145,40 +145,40 @@ if st.button('Show Recommendations'):
 
    
 
-rowsR = [recommendations.iloc[i:i + num_columns] for i in range(0, len(recommendations), num_columns)]
+    rowsR = [recommendations.iloc[i:i + num_columns] for i in range(0, len(recommendations), num_columns)]
 
-for row in rowsR:
-    cols = st.columns(num_columns)
+    for row in rowsR:
+        cols = st.columns(num_columns)
 
-    for idx,col in enumerate(cols):
-        if idx < len(row):
+        for idx,col in enumerate(cols):
+            if idx < len(row):
 
-            row_data = row.iloc[idx]
-            img_url = row_data['ImageURL']
-            name = row_data['Name']
-            brand = row_data['Brand']
-            rating = row_data['Rating']
+                row_data = row.iloc[idx]
+                img_url = row_data['ImageURL']
+                name = row_data['Name']
+                brand = row_data['Brand']
+                rating = row_data['Rating']
 
-            with col:
-                try:
-                     # Download and resize the image to 150x200 pixels
-                    response = requests.get(img_url)
-                    img = Image.open(BytesIO(response.content))
-                    img = img.resize((150, 150))  # Resize the image to a fixed size
-                except Exception as e:
-                    st.write("Image not available")
-                
-                st.markdown(f"""
-                    <div class="card">
-                        <img src="{img_url}"  alt="Product Image">
-                        <h4>{name}</h4>
-                        <p><strong>Brand:</strong> {brand}</p>
-                        <p><strong>Rating:</strong> {rating:.1f} ⭐</p>
-                    </div>
-                """, unsafe_allow_html=True)
-        else:
-            # Empty column if there are no more items in the row
-            col.empty()
+                with col:
+                    try:
+                        # Download and resize the image to 150x200 pixels
+                        response = requests.get(img_url)
+                        img = Image.open(BytesIO(response.content))
+                        img = img.resize((150, 150))  # Resize the image to a fixed size
+                    except Exception as e:
+                        st.write("Image not available")
+                    
+                    st.markdown(f"""
+                        <div class="card">
+                            <img src="{img_url}"  alt="Product Image">
+                            <h4>{name}</h4>
+                            <p><strong>Brand:</strong> {brand}</p>
+                            <p><strong>Rating:</strong> {rating:.1f} ⭐</p>
+                        </div>
+                    """, unsafe_allow_html=True)
+            else:
+                # Empty column if there are no more items in the row
+                col.empty()
 #calling collaborative filtering function
 recommendations = collaborative_filtering_recommendations(items, user_id)
 
