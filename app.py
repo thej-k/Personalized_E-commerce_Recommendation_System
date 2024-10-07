@@ -7,12 +7,16 @@ from io import BytesIO
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import pymysql
+import streamlit.components.v1 as components
+
 
 st.set_page_config(page_title="E-Commerce Recommendation System", layout="wide")
 
 # Initialize session state for login status (default: False)
 if 'login_status' not in st.session_state:
     st.session_state['login_status'] = False
+
+video_url = "https://raw.githubusercontent.com/thej-k/Personalized_E-commerce_Recommendation_System/main/e_commerce.mp4"
 
 # Connect to MySQL database
 def verify_login(user_name, password):
@@ -41,11 +45,13 @@ if not st.session_state['login_status']:
     login_container = st.empty()
     
     with login_container.form(key='login_form'):
+        st.markdown('<div class="login-form-container">', unsafe_allow_html=True)
         st.header("Login to Access the System")
         user_name = st.text_input("Enter User Name:")
         password = st.text_input("Enter Password:", type='password')
 
         submit_button = st.form_submit_button("Login")
+        st.markdown('</div>', unsafe_allow_html=True) 
 
         if submit_button:
             user_id = verify_login(user_name, password)
@@ -60,9 +66,33 @@ if not st.session_state['login_status']:
 
 # Once the user is logged in, show the home page
 if st.session_state['login_status']:
+        # Video banner (autoplay, muted, loop)
+    video_html = f"""
+        <style>
+        .video-container {{
+            width: 100%;
+            height: auto;
+        }}
+        .video-container video {{
+            width: 100%;
+            height: auto;
+              margin-top: -200px;
+
+        }}
+        </style>
+        <div class="video-container">
+            <video autoplay muted loop>
+                <source src="{video_url}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+    """
+
+    # Render the video banner at the top
+    components.html(video_html, height=400)  # Adjust the height as needed
     st.write("Welcome to the E-Commerce Recommendation System!")
 
-
+st.markdown('<div class="page">', unsafe_allow_html=True)   
 # Check login status using session state
 if 'login_status' not in st.session_state or not st.session_state.login_status:
     st.warning("You need to login first!")
@@ -82,7 +112,7 @@ num_columns = 5
 selected_item = st.selectbox('Select item from dropdown', item_names)
 
 # Function for content-based recommendations
-def content_based_recommendations(items, item_name, top_n=5):
+def content_based_recommendations(items, item_name, top_n=10):
     if item_name not in items['Name'].values:
         st.write(f"Item '{item_name}' not found in the data.")
         return pd.DataFrame()
@@ -105,6 +135,8 @@ def content_based_recommendations(items, item_name, top_n=5):
         
     return recommended_items
 
+def truncate_name(name, max_length=90):
+    return (name[:max_length] + '...') if len(name) > max_length else name
 
 # Function for collaborative filtering recommendations
 def collaborative_filtering_recommendations(train_data, target_user_id, top_n = 10):
@@ -133,7 +165,7 @@ def collaborative_filtering_recommendations(train_data, target_user_id, top_n = 
 
 if st.button('Show Recommendations'):
     #Function for hybrid recommendations
-    def hybrid_recommendation_systems(train_data, target_user_id, item_name, top_n=5):
+    def hybrid_recommendation_systems(train_data, target_user_id, item_name, top_n=10):
         content_based_rec = content_based_recommendations(train_data, item_name, top_n)
         collaborative_filtering_rec = collaborative_filtering_recommendations(train_data, target_user_id, top_n)
         hybrid_recommendations = pd.concat([content_based_rec, collaborative_filtering_rec]).drop_duplicates()
@@ -149,10 +181,11 @@ if st.button('Show Recommendations'):
 
     for row in rowsR:
         cols = st.columns(num_columns)
+    for row in rowsR:
+        cols = st.columns(num_columns)
 
         for idx,col in enumerate(cols):
             if idx < len(row):
-
                 row_data = row.iloc[idx]
                 img_url = row_data['ImageURL']
                 name = row_data['Name']
@@ -182,7 +215,7 @@ if st.button('Show Recommendations'):
 #calling collaborative filtering function
 recommendations = collaborative_filtering_recommendations(items, user_id)
 
-st.subheader("Items that matches your search :")
+st.subheader("Users with similar interests also viewed these :")
 
 rowsM = [recommendations.iloc[i:i + num_columns] for i in range(0, len(recommendations), num_columns)]
 
@@ -195,6 +228,7 @@ for row in rowsM:
             row_data = row.iloc[idx]
             img_url = row_data['ImageURL']
             name = row_data['Name']
+            truncated_name = truncate_name(name) 
             brand = row_data['Brand']
             rating = row_data['Rating']
 
@@ -205,41 +239,20 @@ for row in rowsM:
                     img = Image.open(BytesIO(response.content))
                     img = img.resize((150, 150))  # Resize the image to a fixed size
                 except Exception as e:
-                    st.write("Image not available")
+                    testnameto = "testing"
                 
                 st.markdown(f"""
                     <div class="card">
                         <img src="{img_url}"  alt="Product Image">
-                        <h4>{name}</h4>
+                        <h4>{truncated_name}</h4>
                         <p><strong>Brand:</strong> {brand}</p>
                         <p><strong>Rating:</strong> {rating:.1f} ⭐</p>
+                        <button>Add to cart</button>
                     </div>
                 """, unsafe_allow_html=True)
         else:
             # Empty column if there are no more items in the row
             col.empty()
-
-# for index, row in recommendations.iterrows():
-#     # Fetch the image URL
-#     img_url = row['ImageURL']
-#     name = row['Name']
-#     brand = row['Brand']
-#     rating = row['Rating']
-    
-#     # HTML structure for each card
-#     card_html = f"""
-#         <div class='cs'>
-#         <div class="card">
-#             <img src="{img_url}" alt="Product Image">
-#             <h4>{name}</h4>
-#             <p><strong>Brand:</strong> {brand}</p>
-#             <p><strong>Rating:</strong> {rating:.1f} ⭐</p>
-#         </div>
-#         </div>
-#     """
-    
-#     # Render the card using st.markdown
-#     st.markdown(card_html, unsafe_allow_html=True)
 
 # Function for rating-based recommendation
 def rating_based_recommendations(items, top_n=10):
@@ -262,18 +275,23 @@ st.markdown("""
         .card {
             margin: 2px;  /* Adjust spacing between cards */
             width: 300px;  /* Set a maximum width for each card */
-            height:550px;
+            height:450px;
             border: 1px solid #ddd;
             border-radius: 10px;
             box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
             padding: 20px;
-            margin-bottom:15px;
+            padding-bottom:2px;
+            margin-bottom:25px;
+            display: flex; /* Use flexbox */
+            flex-direction: column; /* Align children vertically */
+            justify-content: space-between;
         }
         .card img{
-            width: 100%;
-            height: 300px;
+            width: 70%;
+            height: 200px;
             border-bottom: 1px solid #ddd;
+            margin-left:15%;
             }
         .card h4 {
             margin: 10px 0;
@@ -283,6 +301,35 @@ st.markdown("""
             margin: 5px 0;
             font-size: 14px;
         }
+        .card button {
+            background-color: #ff5733; /* Vibrant orange color */
+            color: white;  /* White text */
+            border: none;  /* Remove default borders */
+            padding: 10px 20px;  /* Add padding to make it bigger */
+            border-radius: 25px;  /* Rounded corners */
+            font-size: 16px;  /* Adjust the text size */
+            cursor: pointer;  /* Change the cursor to a pointer */
+            margin-bottom: 10px;
+            transition: background-color 0.3s ease, transform 0.3s ease;  /* Smooth hover effect */
+            
+        }
+        /* Hover effect for the button */
+        .card button:hover {
+            background-color: #c70039;  /* Change to darker red on hover */
+            transform: translateY(-3px);  /* Slightly lift the button on hover */
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);  /* Add shadow on hover */
+        }
+        .login-form-container {
+            max-width: 300px;  /* Adjust the max width of the form */
+            margin: 0 auto;  /* Center the form horizontally */
+            padding: 40px 20px;  /* Add padding around the form */
+            background-color: #f9f9f9;  /* Optional: Add a background color */
+            border-radius: 10px;  /* Optional: Round the corners */
+            box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.1);  /* Optional: Add a subtle shadow */
+        }
+        .page{
+            width:100%;
+            }
     </style>
 """, unsafe_allow_html=True)
 
@@ -301,6 +348,7 @@ for row in rows:
             row_data = row.iloc[idx]
             img_url = row_data['ImageURL']
             name = row_data['Name']
+            truncated_name = truncate_name(name) 
             brand = row_data['Brand']
             rating = row_data['Rating']
             
@@ -312,40 +360,21 @@ for row in rows:
                     img = Image.open(BytesIO(response.content))
                     img = img.resize((150, 150))  # Resize the image to a fixed size
                 except Exception as e:
-                    st.write("Image not available")
+                    testnameto = "testing"
 
                 # Apply the custom card style using HTML inside the column
                 st.markdown(f"""
                     <div class="card">
                         <img src="{img_url}"  alt="Product Image">
-                        <h4>{name}</h4>
+                        <h4>{truncated_name}</h4>
                         <p><strong>Brand:</strong> {brand}</p>
                         <p><strong>Rating:</strong> {rating:.1f} ⭐</p>
+                        <button>Add to cart</button>
                     </div>
                 """, unsafe_allow_html=True)
         else:
             # Empty column if there are no more items in the row
             col.empty()
 
+st.markdown('</div>', unsafe_allow_html=True)
 
-
- # if not recommendations.empty:
-    #     for idx, (index, row_data) in enumerate(recommendations.iterrows()):
-    #         # Display items in two columns
-    #         col1, col2 = st.columns([1, 2])  # Col1 for image, Col2 for text info
-            
-    #         with col1:
-    #             # Fetch and resize the image to a fixed size
-    #             try:
-    #                 response = requests.get(row_data['ImageURL'])
-    #                 img = Image.open(BytesIO(response.content))
-    #                 img = img.resize((150, 150))  # Resize image to 150x150 pixels
-    #                 st.image(img)
-    #             except:
-    #                 st.write("Image not available")
-            
-    #         with col2:
-    #             # Display product name, brand, and rating
-    #             st.write(f"**Name:** {row_data['Name']}")
-    #             st.write(f"**Brand:** {row_data['Brand']}")
-    #             st.write(f"**Rating:** {row_data['Rating']:.1f}")
