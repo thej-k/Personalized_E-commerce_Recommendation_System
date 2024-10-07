@@ -23,7 +23,7 @@ def verify_login(user_name, password):
     connection = pymysql.connect(
         host='localhost',
         user='root',
-        password='200281000790',
+        password='',
         database='rec_system'
     )
 
@@ -207,6 +207,7 @@ if st.button('Show Recommendations'):
                             <h4>{name}</h4>
                             <p><strong>Brand:</strong> {brand}</p>
                             <p><strong>Rating:</strong> {rating:.1f} ⭐</p>
+                            <button>Add to cart</button>
                         </div>
                     """, unsafe_allow_html=True)
             else:
@@ -282,7 +283,8 @@ st.markdown("""
             text-align: center;
             padding: 20px;
             padding-bottom:2px;
-            margin-bottom:25px;
+            margin-bottom:100px;
+            margin-bottom:50px;
             display: flex; /* Use flexbox */
             flex-direction: column; /* Align children vertically */
             justify-content: space-between;
