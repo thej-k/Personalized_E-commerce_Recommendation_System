@@ -176,6 +176,7 @@ if st.button('Show Recommendations'):
     recommendations = hybrid_recommendation_systems(items, user_id, selected_item)
 
    
+    st.subheader("Recommended Items :")
 
     rowsR = [recommendations.iloc[i:i + num_columns] for i in range(0, len(recommendations), num_columns)]
 
