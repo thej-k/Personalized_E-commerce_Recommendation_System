@@ -27,6 +27,8 @@ def verify_login(user_name, password):
         database='rec_system'
     )
 
+    
+
     cursor = connection.cursor()
     query = "SELECT user_id FROM users WHERE user_name = %s AND password = %s"
     cursor.execute(query, (user_name, password))
